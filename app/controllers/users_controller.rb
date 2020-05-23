@@ -1,13 +1,15 @@
 class UsersController < ApplicationController
-  before_action :require_user_logged_in, only: [:index, :show, :followings, :followers]
+  # ログインしていれば何もしない
+  # ログインしていなければログインページへ強制的にリダイレクト
+  before_action :require_user_logged_in, only: [:index, :show, :followings, :followers, :likes, :liked_microposts]
 
   def index
-    @users = User.order(id: :desc).page(params[:page]).per(25)
+    @users = User.all.page(params[:page])
   end
 
   def show
     @user = User.find(params[:id])
-    @microposts = @user.microposts.order(id: :desc).page(params[:page])
+    @microposts = @user.microposts.order('created_at DESC').page(params[:page])
     counts(@user)
   end
 
@@ -20,9 +22,13 @@ class UsersController < ApplicationController
 
     if @user.save
       flash[:success] = 'ユーザを登録しました。'
+
+      # users#showへ
       redirect_to @user
     else
       flash.now[:danger] = 'ユーザの登録に失敗しました。'
+
+      # users/new.html.erbを表示 ※users#newのアクションは実行しない
       render :new
     end
   end
@@ -39,8 +45,13 @@ class UsersController < ApplicationController
     counts(@user)
   end
 
-  private
+  def likes
+    @user = User.find(params[:id])
+    @liked_microposts = @user.liked_microposts.page(params[:page])
+    counts(@user)
+  end
 
+  private
   def user_params
     params.require(:user).permit(:name, :email, :password, :password_confirmation)
   end

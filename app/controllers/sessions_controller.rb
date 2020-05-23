@@ -10,7 +10,7 @@ class SessionsController < ApplicationController
       redirect_to @user
     else
       flash.now[:danger] = 'ログインに失敗しました。'
-      render :new
+      render 'new'
     end
   end
 
@@ -21,7 +21,6 @@ class SessionsController < ApplicationController
   end
 
   private
-
   def login(email, password)
     @user = User.find_by(email: email)
     if @user && @user.authenticate(password)
